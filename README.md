@@ -1,14 +1,14 @@
 # قالب Portfolio احترافي | Professional Portfolio Template
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![React](https://img.shields.io/badge/React-18.2-61DAFB.svg)
-![Vite](https://img.shields.io/badge/Vite-5.0-646CFF.svg)
+![React](https://img.shields.io/badge/React-19.0-61DAFB.svg)
+![Vite](https://img.shields.io/badge/Vite-8.0-646CFF.svg)
 ![Tailwind](https://img.shields.io/badge/Tailwind-4.0-06B6D4.svg)
 ![License](https://img.shields.io/badge/license-Commercial-green.svg)
 
 <div dir="rtl">
 
-## 📋 نظرة عامة
+## نظرة عامة
 
 قالب Portfolio احترافي ومتكامل مبني باستخدام أحدث تقنيات الويب. يتميز بتصميم عصري جذاب، أداء عالي، ودعم كامل للغة العربية. مناسب للمطورين، المصممين، المسوقين، وأي محترف يرغب في عرض أعماله بشكل احترافي.
 
