@@ -149,7 +149,6 @@ export const projects = [
     title: "منصة التجارة الإلكترونية",
     description: "منصة تجارة إلكترونية متكاملة مع إدارة المخزون في الوقت الفعلي، تكامل بوابات الدفع، ولوحة تحكم متقدمة.",
     technologies: ["React", "Node.js", "MongoDB", "Stripe"],
-    image: "https://picsum.photos/seed/ecommerce/600/400",
     liveUrl: "https://example.com",
     githubUrl: "https://github.com",
     category: "تطبيقات كاملة",
@@ -161,7 +160,6 @@ export const projects = [
     title: "تطبيق إدارة المهام",
     description: "تطبيق تعاوني لإدارة المهام مع تحديثات فورية، واجهة سحب وإفلات، وميزات للفرق.",
     technologies: ["Next.js", "TypeScript", "PostgreSQL", "Socket.io"],
-    image: "https://picsum.photos/seed/tasks/600/400",
     liveUrl: "https://example.com",
     githubUrl: "https://github.com",
     category: "تطبيقات كاملة",
@@ -173,7 +171,6 @@ export const projects = [
     title: "تطبيق محادثة ذكي",
     description: "روبوت محادثة ذكي مدعوم بالذكاء الاصطناعي مع معالجة اللغة الطبيعية.",
     technologies: ["Python", "TensorFlow", "React", "FastAPI"],
-    image: "https://picsum.photos/seed/chatbot/600/400",
     githubUrl: "https://github.com",
     category: "ذكاء اصطناعي",
     featured: true,
@@ -184,7 +181,6 @@ export const projects = [
     title: "موقع شخصي تفاعلي",
     description: "موقع شخصي ديناميكي مع رسوم متحركة وتأثيرات بصرية متميزة.",
     technologies: ["React", "Tailwind CSS", "Framer Motion"],
-    image: "https://picsum.photos/seed/portfolio/600/400",
     liveUrl: "https://example.com",
     githubUrl: "https://github.com",
     category: "واجهات أمامية",
@@ -196,7 +192,6 @@ export const projects = [
     title: "نظام إدارة المحتوى",
     description: "نظام إدارة محتوى متطور مع دعم متعدد اللغات وصلاحيات المستخدمين.",
     technologies: ["Laravel", "Vue.js", "MySQL", "Redis"],
-    image: "https://picsum.photos/seed/cms/600/400",
     liveUrl: "https://example.com",
     githubUrl: "https://github.com",
     category: "تطبيقات كاملة",
@@ -208,7 +203,6 @@ export const projects = [
     title: "لوحة تحليلات البيانات",
     description: "لوحة تحكم تفاعلية لعرض وتحليل البيانات مع رسوم بيانية ديناميكية.",
     technologies: ["React", "D3.js", "Node.js", "PostgreSQL"],
-    image: "https://picsum.photos/seed/analytics/600/400",
     liveUrl: "https://example.com",
     category: "واجهات أمامية",
     featured: false,
@@ -331,12 +325,12 @@ export const services = [
 ]
 
 export const navLinks = [
-  { name: "الرئيسية", href: "#home" },
-  { name: "نبذة عني", href: "#about" },
-  { name: "المهارات", href: "#skills" },
-  { name: "المشاريع", href: "#projects" },
-  { name: "الخبرات", href: "#experience" },
-  { name: "تواصل معي", href: "#contact" },
+  { name: "الرئيسية", href: "home" },
+  { name: "نبذة عني", href: "about" },
+  { name: "المهارات", href: "skills" },
+  { name: "المشاريع", href: "projects" },
+  { name: "الخبرات", href: "experience" },
+  { name: "تواصل معي", href: "contact" },
 ]
 
 export const stats = [

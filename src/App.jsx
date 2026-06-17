@@ -9,6 +9,7 @@ import Experience from './components/sections/Experience'
 import Testimonials from './components/sections/Testimonials'
 import Contact from './components/sections/Contact'
 import usePortfolioStore from './store/usePortfolioStore'
+import { validateSections } from './utils/navigation'
 
 function App() {
   const isLoading = usePortfolioStore((state) => state.isLoading)
@@ -18,12 +19,22 @@ function App() {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark')
+      document.documentElement.classList.remove('light')
       document.documentElement.style.colorScheme = 'dark'
     } else {
       document.documentElement.classList.remove('dark')
+      document.documentElement.classList.add('light')
       document.documentElement.style.colorScheme = 'light'
     }
   }, [isDarkMode])
+
+  // التحقق من الأقسام في وضع التطوير
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      const requiredSections = ['home', 'about', 'skills', 'projects', 'experience', 'contact']
+      validateSections(requiredSections)
+    }
+  }, [])
 
   // شاشة التحميل
   if (isLoading) {

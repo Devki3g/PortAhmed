@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiMenu, FiX, FiMoon, FiSun, FiDownload } from 'react-icons/fi'
 import usePortfolioStore from '../../store/usePortfolioStore'
@@ -7,60 +7,94 @@ import { navLinks, personalInfo } from '../../data/portfolioData'
 const Navbar = () => {
   const { isMenuOpen, toggleMenu, closeMenu, activeSection, isDarkMode, toggleTheme } = usePortfolioStore()
   const [scrolled, setScrolled] = useState(false)
+  const navbarRef = useRef(null)
 
-  // تتبع القسم النشط عند التمرير
+  // تتبع التمرير لتحديد القسم النشط
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
       
-      // تحديد القسم النشط
-      const sections = document.querySelectorAll('section[id]')
-      const scrollY = window.pageYOffset + 150
+      const sections = navLinks.map(link => document.getElementById(link.href))
+      const scrollPosition = window.scrollY + 150
 
-      sections.forEach((section) => {
-        const sectionHeight = section.offsetHeight
-        const sectionTop = section.offsetTop
-        const sectionId = section.getAttribute('id')
-
-        if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
-          usePortfolioStore.getState().setActiveSection(sectionId)
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i]
+        if (section && section.offsetTop <= scrollPosition) {
+          usePortfolioStore.getState().setActiveSection(navLinks[i].href)
+          break
         }
-      })
+      }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll() // تشغيل فوري
+    handleScroll()
+    
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // التنقل السلس إلى الأقسام
-  const handleNavClick = (href) => {
+  // إغلاق القائمة عند النقر خارجها
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && navbarRef.current && !navbarRef.current.contains(event.target)) {
+        closeMenu()
+      }
+    }
+
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && isMenuOpen) {
+        closeMenu()
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscKey)
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscKey)
+    }
+  }, [isMenuOpen, closeMenu])
+
+  // إغلاق القائمة عند تغيير حجم النافذة
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && isMenuOpen) {
+        closeMenu()
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [isMenuOpen, closeMenu])
+
+  // منع التمرير عند فتح القائمة
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isMenuOpen])
+
+  // دالة التنقل إلى القسم
+  const scrollToSection = (sectionId) => {
     closeMenu()
-    const sectionId = href.replace('#', '')
+    
     const element = document.getElementById(sectionId)
     
     if (element) {
-      // استخدام smooth scrolling
-      element.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      })
-      
-      // تحديث القسم النشط
-      usePortfolioStore.getState().setActiveSection(sectionId)
-    } else {
-      console.warn(`Section with id "${sectionId}" not found`)
-    }
-  }
+      const navbarHeight = 80
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset
+      const offsetPosition = elementPosition - navbarHeight
 
-  // تبديل الثيم
-  const handleThemeToggle = () => {
-    toggleTheme()
-    // يمكنك إضافة تأثيرات إضافية هنا
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
+
+      usePortfolioStore.getState().setActiveSection(sectionId)
+    }
   }
 
   return (
     <motion.nav
+      ref={navbarRef}
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
@@ -69,40 +103,41 @@ const Navbar = () => {
           ? 'bg-dark/90 backdrop-blur-xl shadow-2xl border-b border-white/5'
           : 'bg-transparent'
       }`}
+      style={{ direction: 'rtl' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* الشعار */}
-          <motion.a
-            href="#home"
-            onClick={(e) => {
-              e.preventDefault()
-              handleNavClick('#home')
-            }}
-            className="text-2xl md:text-3xl font-bold"
+          <motion.button
+            onClick={() => scrollToSection('home')}
+            className="text-2xl md:text-3xl font-bold bg-transparent border-none cursor-pointer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <span className="gradient-text">{personalInfo.firstName}</span>
-          </motion.a>
+            
+          </motion.button>
 
           {/* القائمة للمتصفح */}
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
-              const sectionId = link.href.replace('#', '')
-              const isActive = activeSection === sectionId
+              const isActive = activeSection === link.href
               
               return (
                 <motion.button
-                  key={link.name}
-                  onClick={() => handleNavClick(link.href)}
+                  key={link.href}
+                  onClick={() => scrollToSection(link.href)}
                   whileHover={{ y: -2 }}
                   whileTap={{ y: 0 }}
-                  className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all bg-transparent border-none cursor-pointer ${
                     isActive
                       ? 'text-white'
-                      : 'text-gray-400 hover:text-white'
+                      : 'text-gray-300 hover:text-white'  // تم تغيير اللون ليكون مرئياً
                   }`}
+                  // تأكيد اللون في كلا الوضعين
+                  style={{
+                    color: isActive ? '#ffffff' : '#d1d5db'
+                  }}
                 >
                   {link.name}
                   {isActive && (
@@ -119,50 +154,54 @@ const Navbar = () => {
 
           {/* الأزرار */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* زر تغيير الثيم */}
+            {/* زر تغيير الثيم - تم إصلاح الألوان */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={handleThemeToggle}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-              aria-label={isDarkMode ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors border-none cursor-pointer"
               title={isDarkMode ? 'الوضع النهاري' : 'الوضع الليلي'}
+              style={{ color: '#ffffff' }}  // لون أبيض صريح
             >
               {isDarkMode ? (
-                <FiSun className="text-xl text-yellow-400" />
+                <FiSun className="text-xl" style={{ color: '#fbbf24' }} />  // أصفر
               ) : (
-                <FiMoon className="text-xl text-blue-400" />
+                <FiMoon className="text-xl" style={{ color: '#60a5fa' }} />  // أزرق فاتح
               )}
             </motion.button>
 
-            {/* زر تحميل السيرة الذاتية */}
+            {/* زر السيرة الذاتية */}
             <motion.a
-              href={personalInfo.resumeUrl}
-              download
+              href={personalInfo.resumeUrl || '#'}
+              download={!!personalInfo.resumeUrl}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-full text-sm font-medium transition-colors"
+              style={{ color: '#ffffff' }}  // لون أبيض صريح
               onClick={(e) => {
-                // إذا كان الملف غير موجود، نمنع التحميل
                 if (!personalInfo.resumeUrl) {
                   e.preventDefault()
                   alert('السيرة الذاتية ستكون متاحة قريباً')
                 }
               }}
             >
-              <FiDownload />
+              <FiDownload style={{ color: '#ffffff' }} />
               <span>السيرة الذاتية</span>
             </motion.a>
           </div>
 
-          {/* زر القائمة للموبايل */}
+          {/* زر القائمة للموبايل - تم إصلاح اللون */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={toggleMenu}
-            className="lg:hidden p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-            aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+            className="lg:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors border-none cursor-pointer"
+            style={{ color: '#ffffff' }}  // لون أبيض صريح
           >
-            {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            {isMenuOpen ? (
+              <FiX size={24} style={{ color: '#ffffff' }} />
+            ) : (
+              <FiMenu size={24} style={{ color: '#ffffff' }} />
+            )}
           </motion.button>
         </div>
       </div>
@@ -170,76 +209,100 @@ const Navbar = () => {
       {/* قائمة الموبايل */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="lg:hidden bg-dark/95 backdrop-blur-xl border-t border-white/5 overflow-hidden"
-          >
-            <div className="px-4 py-4 space-y-1">
-              {navLinks.map((link, index) => {
-                const sectionId = link.href.replace('#', '')
-                const isActive = activeSection === sectionId
-                
-                return (
-                  <motion.button
-                    key={link.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => handleNavClick(link.href)}
-                    className={`block w-full text-right px-4 py-3 rounded-lg transition-all ${
-                      isActive
-                        ? 'bg-primary/20 text-primary font-medium'
-                        : 'text-gray-300 hover:bg-white/5 hover:text-white'
-                    }`}
+          <>
+            {/* خلفية شفافة */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-40"
+              onClick={closeMenu}
+            />
+            
+            {/* القائمة الجانبية */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="lg:hidden fixed top-0 right-0 h-screen w-80 bg-[#0f0f1a] backdrop-blur-xl border-l border-white/10 overflow-y-auto z-50 shadow-2xl"
+              style={{ direction: 'rtl', backgroundColor: '#0f0f1a' }}  // خلفية داكنة صريحة
+            >
+              <div className="pt-20 px-6 pb-6 space-y-2">
+                {/* زر الإغلاق - بلون مرئي */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={closeMenu}
+                    className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors border-none cursor-pointer"
+                    style={{ color: '#ffffff' }}
                   >
-                    {link.name}
-                  </motion.button>
-                )
-              })}
-              
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="pt-4 mt-4 border-t border-white/5 space-y-2"
-              >
-                <a
-                  href={personalInfo.resumeUrl}
-                  download
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-colors"
-                  onClick={(e) => {
-                    if (!personalInfo.resumeUrl) {
-                      e.preventDefault()
-                      alert('السيرة الذاتية ستكون متاحة قريباً')
-                    }
-                  }}
-                >
-                  <FiDownload />
-                  تحميل السيرة الذاتية
-                </a>
+                    <FiX size={24} style={{ color: '#ffffff' }} />
+                  </button>
+                </div>
+
+                {navLinks.map((link, index) => {
+                  const isActive = activeSection === link.href
+                  
+                  return (
+                    <motion.button
+                      key={link.href}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => scrollToSection(link.href)}
+                      className={`block w-full text-right px-4 py-3 rounded-lg transition-all text-lg bg-transparent border-none cursor-pointer ${
+                        isActive
+                          ? 'bg-primary/20 text-white font-medium'
+                          : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                      }`}
+                      style={{
+                        color: isActive ? '#ffffff' : '#d1d5db'  // ألوان صريحة
+                      }}
+                    >
+                      {link.name}
+                    </motion.button>
+                  )
+                })}
                 
-                <button
-                  onClick={handleThemeToggle}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
-                >
-                  {isDarkMode ? (
-                    <>
-                      <FiSun className="text-yellow-400" />
-                      الوضع النهاري
-                    </>
-                  ) : (
-                    <>
-                      <FiMoon className="text-blue-400" />
-                      الوضع الليلي
-                    </>
-                  )}
-                </button>
-              </motion.div>
-            </div>
-          </motion.div>
+                <div className="pt-6 mt-6 border-t border-white/10 space-y-3">
+                  <a
+                    href={personalInfo.resumeUrl || '#'}
+                    download={!!personalInfo.resumeUrl}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-4 bg-primary hover:bg-primary/80 text-white rounded-lg font-medium transition-colors"
+                    style={{ color: '#ffffff' }}
+                    onClick={(e) => {
+                      if (!personalInfo.resumeUrl) {
+                        e.preventDefault()
+                        alert('السيرة الذاتية ستكون متاحة قريباً')
+                      }
+                      closeMenu()
+                    }}
+                  >
+                    <FiDownload style={{ color: '#ffffff' }} />
+                    <span>تحميل السيرة الذاتية</span>
+                  </a>
+                  
+                  <button
+                    onClick={() => toggleTheme()}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-4 bg-white/10 hover:bg-white/20 rounded-lg transition-colors border-none cursor-pointer"
+                    style={{ color: '#ffffff' }}
+                  >
+                    {isDarkMode ? (
+                      <>
+                        <FiSun className="text-xl" style={{ color: '#fbbf24' }} />
+                        <span style={{ color: '#ffffff' }}>الوضع النهاري</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiMoon className="text-xl" style={{ color: '#60a5fa' }} />
+                        <span style={{ color: '#ffffff' }}>الوضع الليلي</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </motion.nav>

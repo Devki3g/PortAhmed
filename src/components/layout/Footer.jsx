@@ -58,7 +58,7 @@ const Footer = () => {
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.2, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-3 bg-white/5 rounded-full hover:bg-primary/20 transition-all border border-white/5 hover:border-primary/30"
+                  className="p-3 bg-white/5 rounded-full hover:bg-primary/20 transition-all border border-white/5 hover:border-primary/30 text-white"
                   aria-label={social.label}
                 >
                   <social.icon className="text-lg" />

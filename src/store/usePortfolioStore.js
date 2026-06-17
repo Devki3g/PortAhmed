@@ -18,13 +18,24 @@ const usePortfolioStore = create(
       },
       
       // Actions
-      toggleMenu: () => set((state) => ({ 
-        isMenuOpen: !state.isMenuOpen 
-      })),
+      toggleMenu: () => {
+        const newState = !get().isMenuOpen
+        set({ isMenuOpen: newState })
+        // منع التمرير عند فتح القائمة
+        document.body.style.overflow = newState ? 'hidden' : 'unset'
+      },
       
-      closeMenu: () => set({ isMenuOpen: false }),
+      closeMenu: () => {
+        set({ isMenuOpen: false })
+        document.body.style.overflow = 'unset'
+      },
       
-      setActiveSection: (section) => set({ activeSection: section }),
+      setActiveSection: (section) => {
+        // التحقق من أن section صحيح قبل تعيينه
+        if (section && typeof section === 'string') {
+          set({ activeSection: section })
+        }
+      },
       
       toggleTheme: () => {
         const newTheme = !get().isDarkMode
@@ -33,13 +44,13 @@ const usePortfolioStore = create(
         // تطبيق الثيم على المستند
         if (newTheme) {
           document.documentElement.classList.add('dark')
+          document.documentElement.classList.remove('light')
           document.documentElement.style.colorScheme = 'dark'
         } else {
           document.documentElement.classList.remove('dark')
+          document.documentElement.classList.add('light')
           document.documentElement.style.colorScheme = 'light'
         }
-        
-        console.log('Theme toggled:', newTheme ? 'Dark' : 'Light')
       },
       
       setLoading: (loading) => set({ isLoading: loading }),
@@ -65,6 +76,25 @@ const usePortfolioStore = create(
         set({ currentLanguage: lang })
         document.documentElement.lang = lang
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+      },
+      
+      // Helper to scroll to section
+      scrollToSection: (sectionId) => {
+        const element = document.getElementById(sectionId)
+        if (element) {
+          const navbarHeight = 80
+          const elementPosition = element.getBoundingClientRect().top
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          })
+          
+          set({ activeSection: sectionId })
+          return true
+        }
+        return false
       }
     }),
     {
@@ -72,7 +102,21 @@ const usePortfolioStore = create(
       partialize: (state) => ({ 
         isDarkMode: state.isDarkMode,
         currentLanguage: state.currentLanguage 
-      })
+      }),
+      // استعادة الثيم عند تحميل الصفحة
+      onRehydrateStorage: () => (state) => {
+        if (state?.isDarkMode !== undefined) {
+          if (state.isDarkMode) {
+            document.documentElement.classList.add('dark')
+            document.documentElement.classList.remove('light')
+            document.documentElement.style.colorScheme = 'dark'
+          } else {
+            document.documentElement.classList.remove('dark')
+            document.documentElement.classList.add('light')
+            document.documentElement.style.colorScheme = 'light'
+          }
+        }
+      }
     }
   )
 )
